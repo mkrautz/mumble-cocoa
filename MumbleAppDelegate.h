@@ -29,11 +29,25 @@
 */
 
 #import <Cocoa/Cocoa.h>
+#import <MumbleKit/MKConnection.h>
+#import <MumbleKit/MKServerModel.h>
 
 @interface MumbleAppDelegate : NSObject <NSApplicationDelegate> {
     NSWindow *window;
+	IBOutlet NSTextField *_hostNameField;
+	IBOutlet NSTextField *_portField;
+	IBOutlet NSTextField *_userNameField;
+	IBOutlet NSSecureTextField *_passWordField;
+	IBOutlet NSButton *_connectButton;
+	IBOutlet NSTextView *_logView;
+
+	MKConnection *_connection;
+	MKServerModel *_serverModel;
 }
 
 @property (assign) IBOutlet NSWindow *window;
+
+- (IBAction) connectClicked:(id)sender;
+- (void) log:(NSString *)text;
 
 @end

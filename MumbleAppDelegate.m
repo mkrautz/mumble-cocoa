@@ -29,13 +29,157 @@
 */
 
 #import "MumbleAppDelegate.h"
+#import <MumbleKit/MKAudio.h>
 
 @implementation MumbleAppDelegate
 
 @synthesize window;
 
-- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
-	// Insert code here to initialize your application 
+- (void) applicationDidFinishLaunching:(NSNotification *)aNotification {
+	[MKAudio initializeAudio];
+
+	[_connectButton setTarget:self];
+	[_connectButton setAction:@selector(connectClicked:)];
+}
+
+- (void) connectClicked:(id)sender {
+	NSString *hostName = [_hostNameField stringValue];
+	NSString *portNumber = [_portField stringValue];
+
+	if (_connection && _serverModel) {
+		[self log:[NSString stringWithFormat:@"Disconnecting...", hostName, portNumber]];
+
+		[_connection closeStreams];
+		[_serverModel release];
+		[_connection release];
+		_connection = nil;
+		_serverModel = nil;
+
+		[[NSNotificationCenter defaultCenter] removeObserver:self forKeyPath:@"MKUserTalkStateChanged"];
+
+		[_connectButton setTitle:@"Connect!"];
+	} else {
+		_connection = [[MKConnection alloc] init];
+		[_connection setDelegate:self];
+		_serverModel = [[MKServerModel alloc] initWithConnection:_connection];
+		[_connection connectToHost:hostName port:[portNumber intValue]];
+		[_serverModel addDelegate:self];
+
+		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(userTalkStateChanged:) name:@"MKUserTalkStateChanged" object:nil];
+
+		[self log:[NSString stringWithFormat:@"Connecting to %@:%@...", hostName, portNumber]];
+		[_connectButton setTitle:@"Disconnect!"];
+	}
+}
+
+- (void) log:(NSString *)text {
+	[_logView scrollRangeToVisible:NSMakeRange([[_logView string] length], 0)];
+	NSDate *date = [NSDate date];
+	[_logView insertText:[NSString stringWithFormat:@"[%@] ", [date description]]];
+	[_logView insertText:text];
+	[_logView insertText:@"\n"];
+}
+
+#pragma mark -
+#pragma mark MKUserTalkStateChanged
+
+- (void) userTalkStateChanged:(NSNotification *)notification {
+	[self log:@"talkStateChanged"];
+}
+
+#pragma mark -
+#pragma mark MKConnection delegate
+
+//
+// The server rejected our connection.
+//
+- (void) connection:(MKConnection *)conn rejectedWithReason:(MKRejectReason)reason explanation:(NSString *)explanation {
+	NSString *msg = nil;
+
+	switch (reason) {
+		case MKRejectReasonNone:
+			msg = @"No reason";
+			break;
+		case MKRejectReasonWrongVersion:
+			msg = @"Version mismatch between client and server.";
+			break;
+		case MKRejectReasonInvalidUsername:
+			msg = @"Invalid username";
+			break;
+		case MKRejectReasonWrongUserPassword:
+			msg = @"Wrong user password";
+			break;
+		case MKRejectReasonWrongServerPassword:
+			msg = @"Wrong server password";
+			break;
+		case MKRejectReasonUsernameInUse:
+			msg = @"Username already in use";
+			break;
+		case MKRejectReasonServerIsFull:
+			msg = @"Server is full";
+			break;
+		case MKRejectReasonNoCertificate:
+			msg = @"A certificate is needed to connect to this server";
+			break;
+	}
+
+	[self log:[NSString stringWithFormat:@"Error: %@", msg]];
+}
+
+//
+// An SSL connection has been opened to the server.  We should authenticate ourselves.
+//
+- (void) connectionOpened:(MKConnection *)conn {
+	NSString *userName = [_userNameField stringValue];
+	NSString *passWord = [[_passWordField stringValue] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceCharacterSet]];
+	if ([passWord isEqualTo:@""])
+		passWord = nil;
+	[conn authenticateWithUsername:userName password:passWord];
+}
+
+#pragma mark -
+#pragma mark MKServerModel delegate
+
+//
+// We've successfuly joined the server.
+//
+- (void) serverModel:(MKServerModel *)server joinedServerAsUser:(MKUser *)user {
+	[self log:@"joinedServerAsUser"];
+}
+
+//
+// A user joined the server.
+//
+- (void) serverModel:(MKServerModel *)server userJoined:(MKUser *)user {
+	[self log:@"userJoined"];
+}
+
+//
+// A user left the server.
+//
+- (void) serverModel:(MKServerModel *)server userLeft:(MKUser *)user {
+	[self log:@"userLeft"];
+}
+
+//
+// A user moved channel
+//
+- (void) serverModel:(MKServerModel *)server userMoved:(MKUser *)user toChannel:(MKChannel *)chan byUser:(MKUser *)mover {
+	[self log:@"userMoved"];
+}
+
+//
+// A channel was added.
+//
+- (void) serverModel:(MKServerModel *)server channelAdded:(MKChannel *)channel {
+	[self log:@"channelAdded"];
+}
+
+//
+// A channel was removed.
+//
+- (void) serverModel:(MKServerModel *)server channelRemoved:(MKChannel *)channel {
+	[self log:@"channelRemoved"];
 }
 
 @end
