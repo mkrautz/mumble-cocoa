@@ -3,7 +3,7 @@ Mumble Cocoa
 
 Test application for MumbleKit.framework on Mac OS X.
 
-![Mumble Cocoa](dump.png)
+![Mumble Cocoa](http://github.com/mkrautz/mumble-cocoa/raw/master/dump.png)
 
 Before Building
 ===============
