@@ -29,29 +29,15 @@
 */
 
 #import <Cocoa/Cocoa.h>
-#import <MumbleKit/MKConnection.h>
-#import <MumbleKit/MKServerModel.h>
+#import <ApplicationServices/ApplicationServices.h>
 
-#import "GlobalShortcut.h"
-
-@interface MumbleAppDelegate : NSObject <NSApplicationDelegate> {
-    NSWindow *window;
-	IBOutlet NSTextField *_hostNameField;
-	IBOutlet NSTextField *_portField;
-	IBOutlet NSTextField *_userNameField;
-	IBOutlet NSSecureTextField *_passWordField;
-	IBOutlet NSButton *_connectButton;
-	IBOutlet NSTextView *_logView;
-
-	MKConnection *_connection;
-	MKServerModel *_serverModel;
-
-	GlobalShortcut *_globalShortcut;
+@interface GlobalShortcut : NSObject {
+	CFMachPortRef _port;
 }
 
-@property (assign) IBOutlet NSWindow *window;
-
-- (IBAction) connectClicked:(id)sender;
-- (void) log:(NSString *)text;
+- (id) init;
+- (void) dealloc;
+- (CFMachPortRef) eventTap;
+- (void) handleButton:(unsigned int)keyCode down:(BOOL)flag;
 
 @end

@@ -38,6 +38,8 @@
 - (void) applicationDidFinishLaunching:(NSNotification *)aNotification {
 	[MKAudio initializeAudio];
 
+	_globalShortcut = [[GlobalShortcut alloc] init];
+
 	[_connectButton setTarget:self];
 	[_connectButton setAction:@selector(connectClicked:)];
 }
