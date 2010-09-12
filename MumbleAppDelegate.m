@@ -36,8 +36,21 @@
 @synthesize window;
 
 - (void) applicationDidFinishLaunching:(NSNotification *)aNotification {
-	[MKAudio initializeAudio];
+	MKAudioSettings settings;
+	settings.codec = MKCodecFormatCELT;
+	settings.quality = 24000;
+	settings.audioPerPacket = 10;
+	settings.noiseSuppression = -42; /* -42 dB */
+	settings.amplification = 20.0f;
+	settings.jitterBufferSize = 0; /* 10 ms */
+	settings.volume = 1.0f;
+	settings.outputDelay = 0; /* 10 ms */
+	settings.enablePreprocessor = NO;
+	settings.enableBenchmark = YES;
 
+	MKAudio *audio = [MKAudio sharedAudio];
+	[audio updateAudioSettings:&settings];
+	[audio restart];
 	_globalShortcut = [[GlobalShortcut alloc] init];
 
 	[_connectButton setTarget:self];
@@ -62,6 +75,7 @@
 		[_connectButton setTitle:@"Connect!"];
 	} else {
 		_connection = [[MKConnection alloc] init];
+		[_connection setForceTCP:YES];
 		[_connection setDelegate:self];
 		_serverModel = [[MKServerModel alloc] initWithConnection:_connection];
 		[_connection connectToHost:hostName port:[portNumber intValue]];

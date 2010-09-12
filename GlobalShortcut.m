@@ -114,8 +114,7 @@ static CGEventRef GlobalShortcutCallback(CGEventTapProxy proxy, CGEventType type
 	
 	// Mouse 0 button
 	if (MOUSE_OFFSET + 0) {
-		MKAudioInput *audioInput = [MKAudio audioInput];
-		[audioInput setForceTransmit:flag];
+		[[MKAudio sharedAudio] setForceTransmit:flag];
 	}
 }
 
